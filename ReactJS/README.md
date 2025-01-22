@@ -1202,3 +1202,1374 @@ class Timer extends React.Component {
 |Where Used |  Managed inside the component |  Passed from parent to child |
 |Updates  | useState / setState  | Cannot be modified inside child |
 |Triggers Re-render? |  Yes, when updated |  No, unless parent re-renders |
+
+### ⚡ Optimization Techniques in React
+
+React applications can become slow if not optimized properly. To improve performance, speed, and efficiency, here are the best optimization techniques:
+
+  1️⃣ Use React.memo() to Prevent Unnecessary Re-renders 🧠
+
+  If a component always receives the same props, React re-renders it unnecessarily. React.memo() memoizes (remembers) the last rendered result and skips re-rendering if props haven’t changed.
+
+📌 Example: Using React.memo()
+```jsx
+import React from "react";
+
+const Button = React.memo(({ handleClick, label }) => {
+  console.log(`Rendering button: ${label}`);
+  return <button onClick={handleClick}>{label}</button>;
+});
+
+function App() {
+  const handleClick = () => alert("Button Clicked!");
+  return <Button handleClick={handleClick} label="Click Me" />;
+}
+
+export default App;
+```
+✅ Prevents re-renders if handleClick and label don’t change
+
+  2️⃣ Use useCallback() to Memoize Functions 🏎️
+
+  React creates a new function instance every render, which causes child components to re-render unnecessarily.
+  Use useCallback() to memoize functions so they don’t get recreated.
+
+📌 Example: Using useCallback()
+```jsx
+import React, { useState, useCallback } from "react";
+
+const Child = React.memo(({ onClick }) => {
+  console.log("Child re-rendered");
+  return <button onClick={onClick}>Click Me</button>;
+});
+
+function App() {
+  const [count, setCount] = useState(0);
+
+  const increment = useCallback(() => {
+    setCount((prevCount) => prevCount + 1);
+  }, []);
+
+  return (
+    <div>
+      <h1>Count: {count}</h1>
+      <Child onClick={increment} />
+    </div>
+  );
+}
+
+export default App;
+```
+
+✅ increment function is memoized, so Child only re-renders when needed
+
+  3️⃣ Use useMemo() to Optimize Expensive Calculations 🔥
+
+  If your component performs heavy calculations, React will recompute them on every render.
+  Use useMemo() to cache the result and avoid unnecessary re-computation.
+
+📌 Example: Using useMemo()
+```jsx
+import React, { useState, useMemo } from "react";
+
+function ExpensiveCalculation({ num }) {
+  const computeFactorial = (n) => {
+    console.log("Calculating factorial...");
+    return n <= 1 ? 1 : n * computeFactorial(n - 1);
+  };
+
+  const factorial = useMemo(() => computeFactorial(num), [num]);
+
+  return <h1>Factorial of {num} is {factorial}</h1>;
+}
+
+function App() {
+  const [number, setNumber] = useState(5);
+  return <ExpensiveCalculation num={number} />;
+}
+
+export default App;
+``` 
+
+✅ Caches factorial calculation, recomputing only when num changes
+
+4️⃣ Use React.lazy() and Suspense for Code-Splitting ⏳
+
+Instead of loading everything at once, use lazy loading to split the code and improve performance.
+
+📌 Example: Lazy Loading Components
+```jsx
+import React, { Suspense, lazy } from "react";
+
+const HeavyComponent = lazy(() => import("./HeavyComponent"));
+
+function App() {
+  return (
+    <Suspense fallback={<h1>Loading...</h1>}>
+      <HeavyComponent />
+    </Suspense>
+  );
+}
+
+export default App;
+```
+✅ Only loads HeavyComponent when needed, reducing initial load time
+
+  5️⃣ Avoid Reconciliation with key in Lists 🔑
+
+  React uses keys to track changes in lists.
+  Always use unique keys to help React efficiently update the UI.
+
+📌 Example: Using Unique Keys in Lists
+```jsx
+const users = ["Alice", "Bob", "Charlie"];
+
+function UserList() {
+  return (
+    <ul>
+      {users.map((user, index) => (
+        <li key={index}>{user}</li>
+      ))}
+    </ul>
+  );
+}
+```
+✅ Use a unique id instead of index when possible
+
+  6️⃣ Avoid Inline Functions and Objects in JSX 🚀
+
+  Every re-render creates a new function or object, which can trigger unnecessary renders.
+  Move functions outside JSX or use useCallback().
+
+📌 Example: Avoiding Inline Function in JSX
+```jsx
+function App() {
+  const handleClick = () => alert("Clicked!");
+
+  return <button onClick={handleClick}>Click Me</button>;
+}
+```
+✅ Prevents re-creating handleClick on every render
+
+  7️⃣ Use Virtualized Lists for Large Data Sets 📜
+
+  Rendering thousands of items at once can slow down performance.
+  Use react-window or react-virtualized for efficient list rendering.
+
+📌 Example: Using react-window for Large Lists
+```jsx
+import { FixedSizeList as List } from "react-window";
+
+const items = new Array(10000).fill("Item");
+
+function LargeList() {
+  return (
+    <List height={400} itemCount={items.length} itemSize={35} width={300}>
+      {({ index, style }) => <div style={style}>{items[index]}</div>}
+    </List>
+  );
+}
+```
+✅ Only renders visible items instead of all at once
+
+  8️⃣ Optimize Context API with useMemo() 🎯
+
+  React re-renders all components when the Context value changes.
+  Use useMemo() to optimize context updates.
+
+📌 Example: Optimizing Context Value with useMemo()
+```jsx
+import React, { createContext, useState, useMemo } from "react";
+
+const ThemeContext = createContext();
+
+function App() {
+  const [theme, setTheme] = useState("light");
+
+  const value = useMemo(() => ({ theme, setTheme }), [theme]);
+
+  return (
+    <ThemeContext.Provider value={value}>
+      <ChildComponent />
+    </ThemeContext.Provider>
+  );
+}
+```
+✅ Prevents unnecessary re-renders when context updates
+
+  9️⃣ Avoid Unnecessary State Updates 🔄
+
+  Updating state unnecessarily triggers extra re-renders.
+  Make sure state updates only when required.
+
+📌 Example: Preventing Extra State Updates
+```jsx
+const [count, setCount] = useState(0);
+
+const increment = () => {
+  setCount(prevCount => {
+    if (prevCount === 10) return prevCount; // Prevent unnecessary update
+    return prevCount + 1;
+  });
+};
+```
+
+✅ Avoids re-rendering if count is already 10
+
+
+### 🛑 Error Boundaries and Error Handling in React
+
+React applications can crash unexpectedly due to unhandled JavaScript errors in components. To prevent this, React provides Error Boundaries, which catch and handle errors gracefully.
+
+🔴 What is an Error Boundary?
+
+An Error Boundary is a special React component that catches JavaScript errors only in class components within its child component tree and prevents the entire app from crashing.
+
+📌 Error Boundaries can handle:
+
+  ✔️ Runtime errors in render(), lifecycle methods, and constructors
+  ❌ Cannot handle errors in event handlers or asynchronous code
+
+🛠 Implementing an Error Boundary
+
+1️⃣ Create an Error Boundary Component
+
+Use the componentDidCatch() and getDerivedStateFromError() lifecycle methods to catch errors and display a fallback UI.
+```jsx
+import React, { Component } from "react";
+
+class ErrorBoundary extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error) {
+    // Update state to show fallback UI
+    return { hasError: true };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error("Caught an error:", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return <h1>Oops! Something went wrong. 🚨</h1>;
+    }
+    return this.props.children;
+  }
+}
+
+export default ErrorBoundary;
+```
+
+2️⃣ Wrap Components with the Error Boundary
+
+Now, use ErrorBoundary to wrap components that might throw errors.
+```jsx
+import React from "react";
+import ErrorBoundary from "./ErrorBoundary";
+import BuggyComponent from "./BuggyComponent";
+
+function App() {
+  return (
+    <div>
+      <h1>React Error Boundaries Example</h1>
+      <ErrorBoundary>
+        <BuggyComponent />
+      </ErrorBoundary>
+    </div>
+  );
+}
+
+export default App;
+```
+3️⃣ Create a Component That Throws an Error
+
+To test the error boundary, create a component that intentionally throws an error.
+```jsx
+import React, { useState } from "react";
+
+function BuggyComponent() {
+  const [throwError, setThrowError] = useState(false);
+
+  if (throwError) {
+    throw new Error("Something went wrong!");
+  }
+
+  return (
+    <div>
+      <h2>Click below to trigger an error:</h2>
+      <button onClick={() => setThrowError(true)}>Trigger Error</button>
+    </div>
+  );
+}
+
+export default BuggyComponent;
+```
+✅ Now, when the error occurs, the error boundary catches it and prevents the entire app from crashing.
+
+⚠️ Error Boundaries Don’t Catch These Errors
+
+    Error Boundaries DO NOT catch:
+    ❌ Errors inside event handlers
+    ❌ Errors in asynchronous code (e.g., setTimeout, Promises)
+    ❌ Errors in server-side rendering (SSR)
+    ❌ Errors in error boundary components themselves
+
+🛠 Handling Errors in Event Handlers
+
+Since error boundaries don’t catch errors inside event handlers, use try-catch blocks for handling them.
+
+📌 Example: Using try-catch in Event Handlers
+```jsx
+function ErrorHandlerComponent() {
+  const handleClick = () => {
+    try {
+      throw new Error("Event handler error!");
+    } catch (error) {
+      alert("Caught an error: " + error.message);
+    }
+  };
+
+  return <button onClick={handleClick}>Click Me</button>;
+}
+```
+✅ Prevents app crashes by handling event handler errors manually.
+
+🛠 Handling Errors in Async Code
+
+Error Boundaries do not catch async errors like Promises or API calls.
+
+📌 Example: Handling Errors in Async Code
+```jsx
+import React, { useState } from "react";
+
+function AsyncComponent() {
+  const [data, setData] = useState(null);
+  const [error, setError] = useState(null);
+
+  const fetchData = async () => {
+    try {
+      let response = await fetch("https://invalid-api-url.com");
+      let result = await response.json();
+      setData(result);
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  return (
+    <div>
+      <button onClick={fetchData}>Fetch Data</button>
+      {error && <p>Error: {error}</p>}
+      {data && <p>Data: {JSON.stringify(data)}</p>}
+    </div>
+  );
+}
+
+export default AsyncComponent;
+```
+✅ Prevents app crashes when an API call fails.
+
+🛠 Handling Errors in Server-Side Rendering (SSR)
+
+React Error Boundaries do not work in SSR. Instead, use try-catch inside getServerSideProps() or getStaticProps().
+
+📌 Example: Error Handling in SSR (Next.js)
+```jsx
+export async function getServerSideProps() {
+  try {
+    const res = await fetch("https://invalid-api-url.com");
+    if (!res.ok) throw new Error("Failed to fetch data");
+    const data = await res.json();
+    return { props: { data } };
+  } catch (error) {
+    return { props: { error: error.message } };
+  }
+}
+```
+✅ Handles SSR errors gracefully.
+
+### 🔥 Redux, React-Redux, and Redux Toolkit Explained
+
+📌 What is Redux?
+
+    Redux is a state management library for JavaScript applications, commonly used with React. It stores and manages global state in a centralized store, making it easier to share data across components.
+
+📌 Key Principles of Redux:
+
+      1.	Single Source of Truth - The entire state is stored in a single store.
+      2.	State is Read-Only - Components cannot modify state directly; they must dispatch actions.
+      3.	Changes are Made with Pure Functions - Reducers handle state updates purely (without modifying existing state).
+
+🚀 Core Concepts of Redux
+
+1️⃣ Store (Global State)
+
+The store holds the entire application state.
+```js
+import { createStore } from "redux";
+const store = createStore(reducer);
+```
+2️⃣ Actions (Events to Update State)
+
+An action is a plain JavaScript object that describes what happened.
+```js
+const increment = { type: "INCREMENT" };
+const decrement = { type: "DECREMENT" };
+```
+3️⃣ Reducers (Pure Functions to Modify State)
+
+A reducer is a function that takes the current state and an action and returns the new state.
+```js
+const counterReducer = (state = 0, action) => {
+  switch (action.type) {
+    case "INCREMENT":
+      return state + 1;
+    case "DECREMENT":
+      return state - 1;
+    default:
+      return state;
+  }
+};
+```
+4️⃣ Dispatch (Trigger an Action)
+
+To modify state, we dispatch actions to the store.
+```js
+store.dispatch({ type: "INCREMENT" });
+```
+📦 What is React-Redux?
+
+  React-Redux is the official React binding for Redux, allowing React components to connect to the Redux store.
+
+📌 Why use React-Redux?
+  ✅ Avoids manual store.subscribe() calls
+  ✅ Automatically updates components when state changes
+  ✅ Improves performance with selectors & memoization
+
+🚀 Steps to Use React-Redux
+
+	1.	Install React-Redux
+
+  npm install react-redux
+
+
+	2.	Provide the Redux Store to React
+```jsx
+import { Provider } from "react-redux";
+import { createStore } from "redux";
+import counterReducer from "./reducers";
+
+const store = createStore(counterReducer);
+
+function App() {
+  return (
+    <Provider store={store}>
+      <Counter />
+    </Provider>
+  );
+}
+
+export default App;
+
+```
+	3.	Connect Components to Redux Store
+```jsx
+import { useSelector, useDispatch } from "react-redux";
+
+function Counter() {
+  const count = useSelector((state) => state);
+  const dispatch = useDispatch();
+
+  return (
+    <div>
+      <h1>Count: {count}</h1>
+      <button onClick={() => dispatch({ type: "INCREMENT" })}>+</button>
+      <button onClick={() => dispatch({ type: "DECREMENT" })}>-</button>
+    </div>
+  );
+}
+
+export default Counter;
+
+```
+
+    ✅ useSelector() gets state from the store
+    ✅ useDispatch() sends actions to update state
+
+🛠 What is Redux Toolkit? (RTK)
+
+    Redux Toolkit (RTK) is the official, modern way to write Redux logic, reducing boilerplate code.
+
+    📌 Why use Redux Toolkit?
+    ✅ Less code (automates action creators & reducers)
+    ✅ Built-in thunk support (for async logic)
+    ✅ Immer.js for immutable state (simplifies reducers)
+    ✅ Best practices included (uses slices & store setup)
+
+🚀 Steps to Use Redux Toolkit
+
+	1.	Install Redux Toolkit
+
+    npm install @reduxjs/toolkit react-redux
+
+
+	2.	Create a Slice (Reducers + Actions Combined)
+```jsx
+import { createSlice } from "@reduxjs/toolkit";
+
+const counterSlice = createSlice({
+  name: "counter",
+  initialState: { value: 0 },
+  reducers: {
+    increment: (state) => {
+      state.value += 1;
+    },
+    decrement: (state) => {
+      state.value -= 1;
+    },
+  },
+});
+
+export const { increment, decrement } = counterSlice.actions;
+export default counterSlice.reducer;
+```
+
+	3.	Set Up Redux Store
+```jsx
+import { configureStore } from "@reduxjs/toolkit";
+import counterReducer from "./counterSlice";
+
+const store = configureStore({
+  reducer: {
+    counter: counterReducer,
+  },
+});
+
+export default store;
+
+```
+	4.	Provide the Store to React
+```jsx
+import { Provider } from "react-redux";
+import store from "./store";
+import Counter from "./Counter";
+
+function App() {
+  return (
+    <Provider store={store}>
+      <Counter />
+    </Provider>
+  );
+}
+
+export default App;
+
+```
+	5.	Use Redux Toolkit in Components
+```jsx
+import { useSelector, useDispatch } from "react-redux";
+import { increment, decrement } from "./counterSlice";
+
+function Counter() {
+  const count = useSelector((state) => state.counter.value);
+  const dispatch = useDispatch();
+
+  return (
+    <div>
+      <h1>Count: {count}</h1>
+      <button onClick={() => dispatch(increment())}>+</button>
+      <button onClick={() => dispatch(decrement())}>-</button>
+    </div>
+  );
+}
+
+export default Counter;
+
+
+```
+    ✅ No need to write action types manually
+    ✅ Reducers directly modify state (Immer.js handles immutability)
+    ✅ Store setup is automatic
+
+### 🚀 Redux-Saga: Handling Side Effects in Redux
+
+📌 What is Redux-Saga?
+
+    Redux-Saga is a middleware for Redux that handles side effects (like API calls, delays, and async tasks) using generators (function*). It allows better control over asynchronous logic and improves performance.
+
+📌 Why Use Redux-Saga?
+    ✅ Manages complex async flows (chained API calls, background tasks)
+    ✅ Handles concurrent & parallel tasks (like WebSocket updates)
+    ✅ Automatic task cancellation (stops unnecessary API calls)
+    ✅ Better error handling (using try-catch)
+    ✅ Improves Redux performance
+
+🛠 How Redux-Saga Works
+
+    Redux-Saga listens for actions and triggers side effects (like fetching data) before updating the Redux store.
+
+📌 Flow:
+    1️⃣ Component Dispatches Action →
+    2️⃣ Saga Middleware Listens →
+    3️⃣ Performs Side Effect (API Call, Delay, etc.) →
+    4️⃣ Dispatches New Action to Update Store
+
+🚀 Steps to Use Redux-Saga
+
+1️⃣ Install Redux-Saga
+
+    npm install redux-saga
+
+2️⃣ Create a Redux Slice (Reducers + Actions)
+
+    Use Redux Toolkit to define the state.
+
+📌 counterSlice.js
+```js
+import { createSlice } from "@reduxjs/toolkit";
+
+const counterSlice = createSlice({
+  name: "counter",
+  initialState: { value: 0, loading: false, error: null },
+  reducers: {
+    increment: (state) => {
+      state.value += 1;
+    },
+    decrement: (state) => {
+      state.value -= 1;
+    },
+    fetchStart: (state) => {
+      state.loading = true;
+    },
+    fetchSuccess: (state, action) => {
+      state.value = action.payload;
+      state.loading = false;
+    },
+    fetchFailure: (state, action) => {
+      state.error = action.payload;
+      state.loading = false;
+    },
+  },
+});
+
+export const { increment, decrement, fetchStart, fetchSuccess, fetchFailure } =
+  counterSlice.actions;
+export default counterSlice.reducer;
+```
+3️⃣ Create a Saga Function to Handle API Call
+
+    📌 Saga functions use function* (Generators) to manage async operations.
+    📌 Use yield call() to perform API calls and yield put() to dispatch actions.
+
+📌 counterSaga.js
+```jsx
+import { call, put, takeEvery } from "redux-saga/effects";
+import { fetchStart, fetchSuccess, fetchFailure } from "./counterSlice";
+
+// Mock API function
+const fetchCount = async () => {
+  const response = await fetch("https://api.example.com/counter");
+  const data = await response.json();
+  return data.value;
+};
+
+// Saga to handle API call
+function* fetchCounterSaga() {
+  try {
+    yield put(fetchStart()); // Show loading state
+    const value = yield call(fetchCount); // API call
+    yield put(fetchSuccess(value)); // Update store
+  } catch (error) {
+    yield put(fetchFailure(error.message)); // Handle error
+  }
+}
+
+// Watch for dispatched actions
+export function* watchCounterSaga() {
+  yield takeEvery("counter/fetchStart", fetchCounterSaga);
+}
+```
+    ✅ call(fetchCount) → Calls the API
+    ✅ put(fetchSuccess(value)) → Dispatches success action
+    ✅ takeEvery("counter/fetchStart", fetchCounterSaga) → Listens for actions
+
+4️⃣ Configure Redux Store with Redux-Saga
+
+📌 store.js
+```jsx
+import { configureStore } from "@reduxjs/toolkit";
+import createSagaMiddleware from "redux-saga";
+import counterReducer from "./counterSlice";
+import { watchCounterSaga } from "./counterSaga";
+
+const sagaMiddleware = createSagaMiddleware();
+
+const store = configureStore({
+  reducer: {
+    counter: counterReducer,
+  },
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware().concat(sagaMiddleware),
+});
+
+sagaMiddleware.run(watchCounterSaga);
+
+export default store;
+```
+    ✅ Creates Saga Middleware
+    ✅ Adds Saga Middleware to Redux Store
+    ✅ Runs Saga Watcher Function
+
+5️⃣ Connect Redux-Saga to React Component
+
+📌 Counter.js
+```jsx
+import { useSelector, useDispatch } from "react-redux";
+import { increment, decrement, fetchStart } from "./counterSlice";
+
+function Counter() {
+  const { value, loading, error } = useSelector((state) => state.counter);
+  const dispatch = useDispatch();
+
+  return (
+    <div>
+      <h1>Count: {value}</h1>
+      <button onClick={() => dispatch(increment())}>+</button>
+      <button onClick={() => dispatch(decrement())}>-</button>
+      <button onClick={() => dispatch(fetchStart())}>Fetch from API</button>
+
+      {loading && <p>Loading...</p>}
+      {error && <p>Error: {error}</p>}
+    </div>
+  );
+}
+
+export default Counter;
+```
+    ✅ dispatch(fetchStart()) → Triggers Saga
+    ✅ Redux-Saga fetches API data and updates state
+
+6️⃣ Provide the Store to React App
+
+📌 App.js
+```jsx
+import { Provider } from "react-redux";
+import store from "./store";
+import Counter from "./Counter";
+
+function App() {
+  return (
+    <Provider store={store}>
+      <Counter />
+    </Provider>
+  );
+}
+
+export default App;
+```
+🎯 Key Redux-Saga Effects
+
+|Effect |	Purpose |
+|---|---|
+| call(fn, ...args) |	Calls an async function (API call) |
+| put(action) |	Dispatches an action to Redux store |
+| takeEvery(actionType, sagaFn) |	Runs saga for every action of a type |
+| takeLatest(actionType, sagaFn) |	Runs only the latest saga (cancels previous) |
+| delay(ms) |	Delays execution (useful for debouncing) |
+| fork(sagaFn) |	Runs a saga in parallel (non-blocking) |
+| cancel(task) |	Cancels a running saga |
+
+
+### 🚀 Redux Thunk: Simplifying Async Operations in Redux
+
+📌 What is Redux Thunk?
+
+    Redux Thunk is a middleware that allows Redux actions to return a function instead of a plain object. This enables us to handle asynchronous operations (like API calls) inside action creators, rather than in components.
+
+📌 Why Use Redux Thunk?
+
+    ✅ Handles async operations (API calls, delays, etc.)
+    ✅ Simplifies API call logic inside Redux actions
+    ✅ Avoids side-effects inside reducers (reducers must be pure functions)
+    ✅ Easy to implement compared to Redux-Saga
+
+🚀 How Redux Thunk Works
+
+📌 Without Redux Thunk, Redux actions must return a plain object:
+```jsx
+const fetchData = () => {
+  return { type: "FETCH_DATA" }; // 🚨 Only plain objects allowed
+};
+```
+📌 With Redux Thunk, actions return a function that can handle async operations:
+```jsx
+const fetchData = () => {
+  return async (dispatch) => {
+    dispatch({ type: "FETCH_START" });
+    const response = await fetch("https://api.example.com/data");
+    const data = await response.json();
+    dispatch({ type: "FETCH_SUCCESS", payload: data });
+  };
+};
+```
+✅ The function receives dispatch as an argument, allowing us to dispatch actions asynchronously.
+
+🛠 Steps to Use Redux Thunk
+
+1️⃣ Install Redux Thunk
+
+    npm install redux-thunk
+
+2️⃣ Create a Redux Slice (Reducers + Actions)
+
+📌 Using Redux Toolkit (createSlice)
+
+📌 counterSlice.js
+```jsx
+import { createSlice } from "@reduxjs/toolkit";
+
+const counterSlice = createSlice({
+  name: "counter",
+  initialState: { value: 0, loading: false, error: null },
+  reducers: {
+    increment: (state) => {
+      state.value += 1;
+    },
+    decrement: (state) => {
+      state.value -= 1;
+    },
+    fetchStart: (state) => {
+      state.loading = true;
+    },
+    fetchSuccess: (state, action) => {
+      state.value = action.payload;
+      state.loading = false;
+    },
+    fetchFailure: (state, action) => {
+      state.error = action.payload;
+      state.loading = false;
+    },
+  },
+});
+
+export const { increment, decrement, fetchStart, fetchSuccess, fetchFailure } =
+  counterSlice.actions;
+export default counterSlice.reducer;
+```
+3️⃣ Create a Redux Thunk Function
+
+📌 Thunk function performs async API call and dispatches actions accordingly.
+
+📌 counterThunk.js
+```jsx
+export const fetchCounter = () => {
+  return async (dispatch) => {
+    try {
+      dispatch(fetchStart()); // Show loading state
+      const response = await fetch("https://api.example.com/counter");
+      const data = await response.json();
+      dispatch(fetchSuccess(data.value)); // Update store
+    } catch (error) {
+      dispatch(fetchFailure(error.message)); // Handle error
+    }
+  };
+};
+```
+    ✅ dispatch(fetchStart()) → Updates loading state
+    ✅ await fetch(...) → Fetches data from API
+    ✅ dispatch(fetchSuccess(data.value)) → Updates store with fetched data
+
+4️⃣ Configure Redux Store with Thunk Middleware
+
+📌 store.js
+```jsx
+import { configureStore } from "@reduxjs/toolkit";
+import counterReducer from "./counterSlice";
+import thunk from "redux-thunk";
+
+const store = configureStore({
+  reducer: {
+    counter: counterReducer,
+  },
+  middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(thunk),
+});
+
+export default store;
+```
+    ✅ Adds Redux Thunk as middleware
+    ✅ Enables async action dispatching
+
+5️⃣ Connect Redux Thunk to React Component
+
+📌 Counter.js
+```jsx
+import { useSelector, useDispatch } from "react-redux";
+import { increment, decrement } from "./counterSlice";
+import { fetchCounter } from "./counterThunk";
+
+function Counter() {
+  const { value, loading, error } = useSelector((state) => state.counter);
+  const dispatch = useDispatch();
+
+  return (
+    <div>
+      <h1>Count: {value}</h1>
+      <button onClick={() => dispatch(increment())}>+</button>
+      <button onClick={() => dispatch(decrement())}>-</button>
+      <button onClick={() => dispatch(fetchCounter())}>Fetch from API</button>
+
+      {loading && <p>Loading...</p>}
+      {error && <p>Error: {error}</p>}
+    </div>
+  );
+}
+
+export default Counter;
+```
+    ✅ dispatch(fetchCounter()) triggers the thunk function
+    ✅ Thunk function fetches API data and updates state
+
+6️⃣ Provide the Store to React App
+
+📌 App.js
+```jsx
+import { Provider } from "react-redux";
+import store from "./store";
+import Counter from "./Counter";
+
+function App() {
+  return (
+    <Provider store={store}>
+      <Counter />
+    </Provider>
+  );
+}
+
+export default App;
+
+```
+
+    ✅ Use Redux Thunk when:
+    ✔️ You need simple API calls
+    ✔️ You prefer async/await syntax
+    ✔️ Your app doesn’t need complex async control
+
+    ✅ Use Redux-Saga when:
+    ✔️ You need complex async workflows (chained API calls, WebSockets)
+    ✔️ You need background tasks (auto-refreshing data, caching)
+    ✔️ You need better error handling & task cancellation
+
+### 🚀 JavaScript for ReactJS: Essential Concepts & Best Practices
+
+  ReactJS is built on JavaScript (ES6+), JSX, and functional programming principles. To master React, you need a strong understanding of modern JavaScript features like ES6+, functional programming, async programming, and state management.
+
+#### 📌 1. ES6+ JavaScript Features for React
+
+##### 1️⃣ Arrow Functions (=>)
+
+  ✅ Concise function syntax
+  ✅ Does not bind this (lexical scoping)
+```js
+const greet = (name) => `Hello, ${name}!`;
+console.log(greet("React")); // "Hello, React!"
+```
+
+📌 Used for event handlers, map functions, and cleaner JSX components.
+
+Example in a React component:
+```jsx
+const Button = ({ text }) => <button>{text}</button>;
+```
+##### 2️⃣ Template Literals (`)
+
+    ✅ Allows multi-line strings & variable interpolation
+```js
+const name = "React";
+console.log(`Welcome to ${name}!`); // "Welcome to React!"
+```
+
+📌 Used for dynamic class names, inline styles, and JSX rendering.
+
+##### 3️⃣ Destructuring
+
+✅ Extracts values from objects & arrays easily
+```jsx
+const user = { name: "John", age: 25 };
+const { name, age } = user;
+console.log(name, age); // "John", 25
+
+📌 Used in props and state management:
+
+const Card = ({ title, description }) => (
+  <div>
+    <h2>{title}</h2>
+    <p>{description}</p>
+  </div>
+);
+```
+
+##### 4️⃣ Spread & Rest Operators (...)
+
+✅ Copies, merges, and expands objects or arrays
+```jsx
+const arr1 = [1, 2, 3];
+const arr2 = [...arr1, 4, 5]; // [1, 2, 3, 4, 5]
+
+📌 Used to update React state immutably:
+
+const [numbers, setNumbers] = useState([1, 2, 3]);
+
+const addNumber = () => {
+  setNumbers([...numbers, 4]); // Updates state immutably
+};
+```
+
+##### 5️⃣ Default Parameters
+
+✅ Provides default values for function parameters
+```jsx
+const greet = (name = "Guest") => `Hello, ${name}!`;
+console.log(greet()); // "Hello, Guest!"
+
+📌 Useful in React props to set default values
+
+const Button = ({ label = "Click Me" }) => <button>{label}</button>;
+```
+
+##### 6️⃣ Object Property Shorthand
+
+✅ Simplifies object creation
+```jsx
+const name = "React";
+const framework = { name }; // { name: "React" }
+
+📌 Used in Redux & API calls:
+
+const fetchData = async () => {
+  const response = await fetch("https://api.example.com/data");
+  const data = await response.json();
+  return { data }; // Shorthand for { data: data }
+};
+```
+##### 7️⃣ Optional Chaining (?.)
+
+✅ Prevents “Cannot read property of undefined” errors
+```jsx
+const user = { profile: { name: "John" } };
+console.log(user.profile?.name); // "John"
+console.log(user.address?.street); // undefined (no error)
+
+📌 Used in API responses & conditional rendering:
+
+return <p>{user?.profile?.name || "Guest"}</p>;
+```
+##### 8️⃣ Nullish Coalescing (??)
+
+✅ Provides a fallback for null or undefined values
+```jsx
+const value = null;
+console.log(value ?? "Default"); // "Default"
+```
+📌 Used in props & API responses:
+```jsx
+const title = props.title ?? "No Title Available";
+```
+#### 📌 2. Functional Programming Concepts in React
+
+React encourages functional programming, using pure functions, immutability, and declarative code.
+
+##### 1️⃣ Higher-Order Functions (HOF)
+
+✅ Functions that take another function as an argument or return a function
+```jsx
+const withLogging = (fn) => (...args) => {
+  console.log("Calling function with args:", args);
+  return fn(...args);
+};
+
+const add = (a, b) => a + b;
+const addWithLogging = withLogging(add);
+console.log(addWithLogging(2, 3)); // Logs: "Calling function with args: [2, 3]" then outputs 5
+```
+📌 Used in Higher-Order Components (HOC):
+```jsx
+const withAuth = (Component) => (props) =>
+  isAuthenticated ? <Component {...props} /> : <Redirect to="/login" />;
+```
+##### 2️⃣ Map, Filter, Reduce
+
+✅ Transform & process data in JSX components
+```js
+const numbers = [1, 2, 3, 4, 5];
+const doubled = numbers.map((n) => n * 2); // [2, 4, 6, 8, 10]
+```
+📌 Used for rendering lists:
+```jsx
+const users = [{ name: "Alice" }, { name: "Bob" }];
+
+return (
+  <ul>
+    {users.map((user, index) => (
+      <li key={index}>{user.name}</li>
+    ))}
+  </ul>
+);
+```
+##### 3️⃣ Immutability
+
+✅ State should never be modified directly
+```jsx
+const numbers = [1, 2, 3];
+const newNumbers = [...numbers, 4]; // Correct (Immutable)
+```
+📌 Used in React state management:
+```jsx
+setState((prev) => [...prev, newItem]); // Always return a new array
+```
+#### 📌 3. Asynchronous JavaScript (Async/Await & Promises)
+
+React often interacts with APIs, making async/await and Promises crucial.
+
+##### 1️⃣ Fetching Data using async/await
+
+```js
+const fetchData = async () => {
+  try {
+    const response = await fetch("https://api.example.com/data");
+    const data = await response.json();
+    console.log(data);
+  } catch (error) {
+    console.error("Error fetching data:", error);
+  }
+};
+
+📌 Used in React’s useEffect Hook:
+
+useEffect(() => {
+  fetchData();
+}, []);
+```
+
+#### 📌 4. Event Handling in React
+
+##### 1️⃣ Handling Events with Arrow Functions
+
+```jsx
+const handleClick = () => console.log("Button clicked!");
+return <button onClick={handleClick}>Click Me</button>;
+```
+
+##### 2️⃣ Preventing Default Actions
+```jsx
+const handleSubmit = (e) => {
+  e.preventDefault();
+  console.log("Form submitted!");
+};
+return <form onSubmit={handleSubmit}></form>;
+``
+
+#### 📌 5. LocalStorage & SessionStorage
+
+##### Saving & Retrieving Data
+```js
+localStorage.setItem("user", JSON.stringify({ name: "John" }));
+const user = JSON.parse(localStorage.getItem("user"));
+console.log(user.name); // "John"
+```
+📌 Used for authentication tokens, user preferences, etc.
+
+
+### 🚀 TypeScript for React: A Complete Guide
+
+    TypeScript enhances React development by adding static types, which improves code reliability, maintainability, and IDE support. Let’s explore the key TypeScript features for React!
+
+#### 📌 1. Setting Up TypeScript in a React Project
+
+To create a new React project with TypeScript:
+
+    npx create-react-app my-app --template typescript
+
+For an existing project, install TypeScript and required types:
+
+    npm install typescript @types/react @types/react-dom --save-dev
+
+Then, rename .js files to .tsx (for React components) and .ts (for regular TypeScript files).
+
+#### 📌 2. TypeScript Basics in React
+
+##### 1️⃣ Typing Props in Functional Components
+
+```ts
+type ButtonProps = {
+  label: string;
+  onClick: () => void;
+};
+
+const Button: React.FC<ButtonProps> = ({ label, onClick }) => {
+  return <button onClick={onClick}>{label}</button>;
+};
+```
+
+✔️ Ensures label is a string and onClick is a function
+✔️ Provides auto-completion and type checking in IDE
+
+##### 2️⃣ Typing Props with Optional & Default Values
+
+```ts
+type CardProps = {
+  title: string;
+  description?: string; // Optional prop
+};
+
+const Card: React.FC<CardProps> = ({ title, description = "No description" }) => {
+  return (
+    <div>
+      <h2>{title}</h2>
+      <p>{description}</p>
+    </div>
+  );
+};
+```
+
+✔️ description is optional (?) and has a default value
+
+##### 3️⃣ Typing State with useState
+
+```ts
+import { useState } from "react";
+
+const Counter = () => {
+  const [count, setCount] = useState<number>(0); // Explicitly defining type
+
+  return <button onClick={() => setCount(count + 1)}>Count: {count}</button>;
+};
+```
+
+✔️ Ensures count is always a number
+✔️ Prevents unintended type errors
+
+##### 4️⃣ Typing Events in React
+
+```ts
+const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  console.log(event.target.value);
+};
+
+return <input type="text" onChange={handleChange} />;
+```
+
+✔️ Correctly types event handlers
+✔️ Prevents unexpected event object issues
+
+##### 5️⃣ Typing Functions in Props
+
+```ts
+type CallbackProps = {
+  onSubmit: (data: string) => void;
+};
+
+const Form: React.FC<CallbackProps> = ({ onSubmit }) => {
+  return <button onClick={() => onSubmit("Hello!")}>Submit</button>;
+};
+```
+
+✔️ Ensures onSubmit receives a string argument
+
+#### 📌 3. Advanced TypeScript in React
+
+##### 1️⃣ Using interface vs type
+
+Both are used to define types, but interfaces are extendable.
+```ts
+interface User {
+  name: string;
+  age: number;
+}
+
+type UserType = {
+  name: string;
+  age: number;
+};
+```
+
+✔️ Use interface for object structures
+✔️ Use type for union types and more flexibility
+
+##### 2️⃣ Typing Components with Generics
+
+Generics allow components to be reusable with different data types.
+```tsx
+type ListProps<T> = {
+  items: T[];
+  renderItem: (item: T) => JSX.Element;
+};
+
+const List = <T,>({ items, renderItem }: ListProps<T>) => (
+  <ul>{items.map(renderItem)}</ul>
+);
+
+const users = [{ name: "Alice" }, { name: "Bob" }];
+<List items={users} renderItem={(user) => <li>{user.name}</li>} />;
+```
+
+✔️ Creates a generic list component for any data type
+
+##### 3️⃣ Typing Context API
+
+```ts
+import { createContext, useContext } from "react";
+
+type Theme = "light" | "dark";
+const ThemeContext = createContext<Theme>("light");
+
+const useTheme = () => useContext(ThemeContext);
+```
+
+✔️ Ensures correct types for useContext hooks
+
+##### 4️⃣ Typing Redux with TypeScript
+
+```ts
+type CounterState = {
+  count: number;
+};
+
+const initialState: CounterState = { count: 0 };
+```
+✔️ Ensures strict state types in Redux
+
+#### 📌 4. TypeScript Utility Types in React
+
+##### 1️⃣ Partial - Makes all properties optional
+
+```ts
+type User = { name: string; age: number };
+const updateUser = (user: Partial<User>) => {};
+updateUser({ name: "John" }); // Valid
+```
+
+##### 2️⃣ Pick<T, K> - Picks specific properties
+
+```ts
+type User = { name: string; age: number; email: string };
+type UserName = Pick<User, "name">; // { name: string }
+```
+
+##### 3️⃣ Omit<T, K> - Omits specific properties
+
+```ts
+type UserWithoutEmail = Omit<User, "email">; // { name: string, age: number }
+```
+
+#### 📌 5. TypeScript Best Practices in React
+
+    ✅ Use type for props & function signatures
+    ✅ Use interface for objects & class components
+    ✅ Always define return types for functions
+    ✅ Prefer React.FC<Props> for components
+    ✅ Use useState<Type> for strongly-typed state
+    ✅ Use utility types (Pick, Omit, Partial) to enhance maintainability
